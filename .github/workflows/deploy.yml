@@ -26,10 +26,10 @@ jobs:
 
     # 2️⃣ Authenticate with GCP using GitHub secret
     - name: Authenticate GCP
-      run: |
-        echo "${{ secrets.GCP_CREDENTIALS }}" > /tmp/sa-key.json
-        gcloud auth activate-service-account --key-file=/tmp/sa-key.json
-        gcloud config set project $PROJECT_ID
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
 
     # 3️⃣ Terraform Init & Apply
     - name: Terraform Init
