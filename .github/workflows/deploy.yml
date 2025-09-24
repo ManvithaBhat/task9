@@ -41,10 +41,10 @@ jobs:
       run: terraform init
 
     - name: Terraform Plan
-      run: terraform plan -out=tfplan
+      run: terraform plan 
 
     - name: Terraform Apply
-      run: terraform apply -auto-approve tfplan
+      run: terraform apply -auto-approve 
 
     # 5️⃣ Configure kubectl for GKE
     - name: Get GKE Credentials
