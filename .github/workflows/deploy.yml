@@ -47,7 +47,7 @@ jobs:
 
     - name: Terraform Destroy
       working-directory: infra
-      run: terraform destroy -target=google_container_node_pool.primary_nodes
+      run: terraform destroy -target=google_container_node_pool.primary_nodes -auto-approve
 
     - name: Terraform Apply
       working-directory: infra
