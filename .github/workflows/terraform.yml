@@ -14,10 +14,11 @@ jobs:
 
       - name: Write GCP credentials
         run: |
-          echo "${{ secrets.GCP_CREDENTIALS }}" > ${HOME}/gcp-key.json
-          gcloud auth activate-service-account --key-file=${HOME}/gcp-key.json
-          gcloud config set project test-project-1-466213
-          gcloud config set compute/zone us-central1-a
+          mkdir -p ${HOME}
+          printf '%s' "${{ secrets.GCP_CREDENTIALS }}" > ${HOME}/gcp-key.json
+          ls -l ${HOME}/gcp-key.json
+          head -5 ${HOME}/gcp-key.json
+
 
       - name: Terraform init
         working-directory: ./infra
