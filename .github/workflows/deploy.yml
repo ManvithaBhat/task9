@@ -1,37 +1,66 @@
-name: Build and Deploy to GKE (Self-Hosted)
+# File: .github/workflows/deploy-gke.yaml
+name: Self-Hosted GKE Deploy Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
-  build-deploy:
+  deploy:
     runs-on: self-hosted
 
+    env:
+      PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      GKE_CLUSTER: ${{ secrets.GKE_CLUSTER }}
+      GKE_ZONE: ${{ secrets.GKE_ZONE }}
+      DOCKER_REPO: ${{ secrets.DOCKER_REPO }}
+      IMAGE_TAG: ${{ github.sha }}
+      NAMESPACE: default   # Change if you want a custom namespace
+
     steps:
-      - uses: actions/checkout@v4
+    # 1️⃣ Checkout the repository
+    - name: Checkout Code
+      uses: actions/checkout@v3
 
-      - name: Write GCP credentials
-        run: |
-          mkdir -p ${HOME}
-          printf '%s' "${{ secrets.GCP_CREDENTIALS }}" > ${HOME}/gcp-key.json
-          ls -l ${HOME}/gcp-key.json
-          head -5 ${HOME}/gcp-key.json
+    # 2️⃣ Authenticate with GCP using your secret
+    - name: Authenticate GCP
+      run: |
+        echo "${{ secrets.GCP_CREDENTIALS }}" > /tmp/sa-key.json
+        gcloud auth activate-service-account --key-file=/tmp/sa-key.json
+        gcloud config set project $PROJECT_ID
 
+    # 3️⃣ Terraform Init & Apply
+    - name: Terraform Init
+      run: terraform init
 
-      - name: Configure Docker auth
-        run: gcloud auth configure-docker --quiet
+    - name: Terraform Plan
+      run: terraform plan -out=tfplan
 
-      - name: Build & Push Docker image
-        run: |
-          IMAGE=gcr.io/test-project-1-466213/demo-app:${{ github.sha }}
-          docker build -t $IMAGE ./app
-          docker push $IMAGE
+    - name: Terraform Apply
+      run: terraform apply -auto-approve tfplan
 
-      - name: Get GKE credentials
-        run: gcloud container clusters get-credentials demo-gke --zone us-central1-a --project test-project-1-466213
+    # 4️⃣ Configure kubectl for GKE
+    - name: Get GKE Credentials
+      run: |
+        gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE --project $PROJECT_ID
 
-      - name: Deploy to GKE
-        run: |
-          kubectl apply -f k8s/deployment.yaml
-          kubectl set image deployment/demo-deployment demo-container=gcr.io/test-project-1-466213/demo-app:${{ github.sha }} --record || true
+    # 5️⃣ Build and Push Docker Image
+    - name: Build Docker Image
+      run: |
+        docker build -t $DOCKER_REPO:$IMAGE_TAG .
+        docker push $DOCKER_REPO:$IMAGE_TAG
+
+    # 6️⃣ Create namespace if it doesn't exist
+    - name: Ensure Namespace Exists
+      run: |
+        kubectl get namespace $NAMESPACE || kubectl create namespace $NAMESPACE
+
+    # 7️⃣ Deploy using Helm
+    - name: Helm Upgrade / Install
+      run: |
+        helm upgrade --install my-app ./helm-chart \
+          --namespace $NAMESPACE \
+          --set image.repository=$DOCKER_REPO \
+          --set image.tag=$IMAGE_TAG
