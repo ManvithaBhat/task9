@@ -20,5 +20,5 @@ resource "google_container_node_pool" "primary_nodes" {
       "https://www.googleapis.com/auth/cloud-platform",
     ]
   }
-  locations = var.zone
+  location = var.zone
 }
