@@ -1,0 +1,28 @@
+name: Terraform Apply (Self-Hosted)
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  terraform:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Write GCP credentials
+        run: |
+          echo "${{ secrets.GCP_CREDENTIALS }}" > ${HOME}/gcp-key.json
+          gcloud auth activate-service-account --key-file=${HOME}/gcp-key.json
+          gcloud config set project test-project-1-466213
+          gcloud config set compute/zone us-central1-a
+
+      - name: Terraform init
+        working-directory: ./infra
+        run: terraform init
+
+      - name: Terraform apply
+        working-directory: ./infra
+        run: terraform apply -auto-approve -var="project=test-project-1-466213" -var="zone=us-central1-a"

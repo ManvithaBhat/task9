@@ -1,0 +1,36 @@
+name: Build and Deploy to GKE (Self-Hosted)
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-deploy:
+    runs-on: self-hosted
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write GCP credentials
+        run: |
+          echo "${{ secrets.GCP_CREDENTIALS }}" > ${HOME}/gcp-key.json
+          gcloud auth activate-service-account --key-file=${HOME}/gcp-key.json
+          gcloud config set project test-project-1-466213
+          gcloud config set compute/zone us-central1-a
+
+      - name: Configure Docker auth
+        run: gcloud auth configure-docker --quiet
+
+      - name: Build & Push Docker image
+        run: |
+          IMAGE=gcr.io/test-project-1-466213/demo-app:${{ github.sha }}
+          docker build -t $IMAGE ./app
+          docker push $IMAGE
+
+      - name: Get GKE credentials
+        run: gcloud container clusters get-credentials demo-gke --zone us-central1-a --project test-project-1-466213
+
+      - name: Deploy to GKE
+        run: |
+          kubectl apply -f k8s/deployment.yaml
+          kubectl set image deployment/demo-deployment demo-container=gcr.io/test-project-1-466213/demo-app:${{ github.sha }} --record || true
