@@ -38,12 +38,15 @@ jobs:
 
     # 4️⃣ Terraform Init & Apply
     - name: Terraform Init
+      working-directory: infra
       run: terraform init
 
     - name: Terraform Plan
+      working-directory: infra
       run: terraform plan 
 
     - name: Terraform Apply
+      working-directory: infra
       run: terraform apply -auto-approve 
 
     # 5️⃣ Configure kubectl for GKE
