@@ -7,7 +7,7 @@ resource "google_container_cluster" "primary" {
 
 resource "google_container_node_pool" "primary_nodes" {
   name     = "primary-node-pool"
-  cluster  = google_container_cluster.primary.name
+  cluster  = var.cluster_name
   location = var.zone
   node_count = 2
 
