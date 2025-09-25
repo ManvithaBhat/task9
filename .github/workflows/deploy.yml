@@ -70,7 +70,12 @@ jobs:
       run: |
         docker build -t $DOCKER_REPO:$IMAGE_TAG .
         docker push $DOCKER_REPO:$IMAGE_TAG
-
+        
+    - name: Install GKE Auth Plugin
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y google-cloud-sdk-gke-gcloud-auth-plugin
+        
     # 7️⃣ Create namespace if it doesn't exist
     - name: Ensure Namespace Exists
       working-directory: k8s
