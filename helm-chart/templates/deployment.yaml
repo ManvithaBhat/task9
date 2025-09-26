@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: {{ include "demo-chart.fullname" . }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.replicaCount | default 1 }}
   selector:
     matchLabels:
       app: {{ include "demo-chart.name" . }}
@@ -13,7 +13,7 @@ spec:
         app: {{ include "demo-chart.name" . }}
     spec:
       containers:
-        - name: {{ include "demo-chart.name" . }}
+        - name: {{ include "demo-chart.name" . | trunc 63 | replace "." "-" }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           ports:
-            - containerPort: {{ .Values.containerPort }}
+            - containerPort: "{{ .Values.containerPort }}"
