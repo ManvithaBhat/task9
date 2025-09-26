@@ -7,5 +7,6 @@ spec:
   selector:
     app: {{ include "demo-chart.name" . }}
   ports:
-    - port: {{ .Values.service.port }}
+    - protocol: TCP
+      port: {{ .Values.service.port }}
       targetPort: {{ .Values.containerPort }}
