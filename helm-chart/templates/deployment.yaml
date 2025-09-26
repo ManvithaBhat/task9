@@ -15,5 +15,6 @@ spec:
       containers:
         - name: {{ include "demo-chart.name" . | trunc 63 | replace "." "-" }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - containerPort: "{{ .Values.containerPort }}"
+            - containerPort: {{ .Values.containerPort }}
