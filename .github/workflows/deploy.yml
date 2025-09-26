@@ -93,11 +93,11 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # 8️⃣ Deploy using Helm
     - name: Helm Upgrade / Install
       working-directory: helm-chart
       run: |
-        helm upgrade --install my-app ./helm-chart \
+        helm upgrade --install my-app . \
           --namespace $NAMESPACE \
           --set image.repository=$DOCKER_REPO \
           --set image.tag=$IMAGE_TAG
+
