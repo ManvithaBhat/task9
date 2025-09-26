@@ -90,6 +90,9 @@ jobs:
       run: |
         kubectl get namespace $NAMESPACE || kubectl create namespace $NAMESPACE
 
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
     # 8️⃣ Deploy using Helm
     - name: Helm Upgrade / Install
       working-directory: helm-chart
